@@ -33,6 +33,9 @@ bool end         = false;
 int max_time_min = 10;
 std::string data_save_path;
 
+static int s_message_counter = 0;
+static const int s_total_message_to_collect = 842037;
+
 void
 imu_callback( const sensor_msgs::ImuConstPtr& imu_msg )
 {
@@ -58,6 +61,12 @@ imu_callback( const sensor_msgs::ImuConstPtr& imu_msg )
         if ( time_min > max_time_min )
             end = true;
     }
+
+    if(++s_message_counter >= s_total_message_to_collect) {
+        ros::shutdown();
+        // This will unblock spin()/spinonece() and start the analysis
+    }
+    std::cout << "[Debug] Received " << s_message_counter << " imu measurement\n";
 }
 
 void
@@ -232,7 +241,7 @@ main( int argc, char** argv )
     acc_y = new imu::AllanAcc( "acc y", max_cluster );
     acc_z = new imu::AllanAcc( "acc z", max_cluster );
     std::cout << "wait for imu data." << std::endl;
-    ros::Rate loop( 100 );
+    ros::Rate loop( 1000 );
 
     //    ros::spin( );
     while ( !end )
